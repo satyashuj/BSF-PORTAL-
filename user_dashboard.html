@@ -5,13 +5,108 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BSF User Dashboard</title>
 <link rel="stylesheet" href="user.css">
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #f4f7fa;
+    margin: 0;
+  }
+  .navbar {
+    background: #003366;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+  }
+  .navbar ul {
+    list-style: none;
+    display: flex;
+    gap: 15px;
+  }
+  .navbar a, .navbar button {
+    color: white;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    text-decoration: none;
+  }
+  .main-container {
+    display: flex;
+    justify-content: space-between;
+    margin: 20px;
+  }
+  .left-panel {
+    width: 70%;
+  }
+  .right-panel {
+    width: 28%;
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 0 8px rgba(0,0,0,0.1);
+  }
+  .user-box {
+    background: white;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 8px rgba(0,0,0,0.1);
+  }
+  #commandoList li {
+    list-style: none;
+    margin: 10px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #f9f9f9;
+    padding: 8px;
+    border-radius: 8px;
+  }
+  #commandoList img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  table, th, td {
+    border: 1px solid #ccc;
+    text-align: center;
+    padding: 8px;
+  }
+  footer {
+    background: #003366;
+    color: white;
+    text-align: center;
+    padding: 10px;
+  }
+  #clock {
+    font-size: 22px;
+    color: #003366;
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+  #calendar {
+    text-align: center;
+  }
+</style>
 </head>
 <body>
+
+<!-- 🔹 Navigation Bar -->
 <nav class="navbar">
-  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQmPj0JPUJpbP4RPvxuLRY36ENmNicuW2_AcA&s" alt="BSF Logo" class="logo-img">
-  <h2>BSF Portal - User Dashboard</h2>
+  <div class="logo-section">
+    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQmPj0JPUJpbP4RPvxuLRY36ENmNicuW2_AcA&s" width="50" style="border-radius:50%">
+    <strong>BSF Portal</strong>
+  </div>
   <ul>
-    <li><a href="#home">Home</a></li>
+    <li><a href="#user-view">Home</a></li>
     <li><a href="#about">About</a></li>
     <li><a href="#contact">Contact</a></li>
     <li><input type="text" id="searchBox" placeholder="Search Commando..." onkeyup="searchCommando()"></li>
@@ -19,67 +114,94 @@
   </ul>
 </nav>
 
-<section id="home" class="dashboard">
-  <h2>Commando & Schedule Details</h2>
+<!-- 🔹 Main Section -->
+<div class="main-container">
+  <div class="left-panel">
+    <!-- Commando List -->
+    <section id="user-view" class="user-box">
+      <h2>🪖 Commando Details</h2>
+      <ul id="commandoList"></ul>
+    </section>
 
-  <!-- Commandos -->
-  <div class="user-box">
-    <h3>🪖 Commandos</h3>
-    <ul id="commandoList"></ul>
+    <!-- Schedule -->
+    <section class="user-box">
+      <h2>📅 Training Schedule</h2>
+      <p id="scheduleInfo"></p>
+    </section>
+
+    <!-- Leave Details -->
+    <section class="user-box">
+      <h2>🕒 Leave Details</h2>
+      <table id="leaveTable">
+        <tr><th>Day</th><th>Leave Info</th></tr>
+        <tr><td>Sunday</td><td>Weekly Off</td></tr>
+        <tr><td>Wednesday</td><td>Half Day Leave</td></tr>
+      </table>
+    </section>
   </div>
 
-  <!-- Schedule -->
-  <div class="user-box">
-    <h3>📅 Training Schedule</h3>
-    <p id="showSchedule"></p>
+  <!-- 🔹 Right Panel -->
+  <div class="right-panel">
+    <div id="clock"></div>
+    <div id="calendar"></div>
   </div>
-</section>
+</div>
 
-<section id="about" class="info-section">
-  <h3>About BSF</h3>
+<!-- 🔹 About -->
+<section id="about" class="user-box">
+  <h2>About BSF</h2>
   <p>The Border Security Force (BSF) is India's first line of defense. It ensures border safety, conducts patrols, and upholds national security with valor and discipline.</p>
 </section>
 
-<section id="contact" class="info-section">
-  <h3>Contact</h3>
-  <p>Email: info@bsf.gov.in | Phone: +91 9876543210</p>
+<!-- 🔹 Contact -->
+<section id="contact" class="user-box">
+  <h2>Contact</h2>
+  <p>Email: info@bsf.gov.in | Phone: +91-9876543210</p>
 </section>
 
+<!-- 🔹 Footer -->
 <footer>
   <p>© 2025 BSF Portal | All Rights Reserved</p>
-  <p>Created by Satyanshu Saxena</p>
+  <p>Created by <strong>Satyanshu Saxena</strong></p>
 </footer>
 
+<!-- 🔹 Script -->
 <script>
-// 🚫 Block access if not logged in
+// Redirect if not logged in
 if (localStorage.getItem("isUser") !== "true") {
-  window.location.href = "main_login.html";
+  window.location.href = "user_login.html";
 }
 
-// 🪖 Load Commandos
-function loadCommandos() {
-  const commandos = JSON.parse(localStorage.getItem("commandos")) || [];
+// 🔸 Load Data
+const commandos = JSON.parse(localStorage.getItem("commandos")) || [];
+const schedule = localStorage.getItem("schedule") || "No schedule available.";
+
+// 🔹 Render Commando List
+function renderCommandos() {
   const list = document.getElementById("commandoList");
   list.innerHTML = "";
-
   if (commandos.length === 0) {
-    list.innerHTML = "<li>No commandos added yet.</li>";
-  } else {
-    commandos.forEach(c => {
-      const li = document.createElement("li");
-      li.innerHTML = `<img src="${c.photo}" width="50" style="border-radius:50%"> <strong>${c.name}</strong>`;
-      list.appendChild(li);
-    });
+    list.innerHTML = "<li>No commando data found.</li>";
+    return;
   }
+
+  commandos.forEach(c => {
+    const li = document.createElement("li");
+    li.innerHTML = `
+      <img src="${c.photo}" alt="photo">
+      <div>
+        <strong>${c.name}</strong><br>
+        ID: ${c.id}
+      </div>
+    `;
+    list.appendChild(li);
+  });
 }
 
-// 📅 Load Schedule
-function loadSchedule() {
-  const schedule = localStorage.getItem("schedule") || "No schedule available yet.";
-  document.getElementById("showSchedule").innerText = schedule;
-}
+// 🔹 Render Schedule
+document.getElementById("scheduleInfo").innerText = schedule;
 
-// 🔍 Search Commandos
+// 🔹 Search Commando
 function searchCommando() {
   const input = document.getElementById("searchBox").value.toLowerCase();
   const listItems = document.querySelectorAll("#commandoList li");
@@ -89,15 +211,53 @@ function searchCommando() {
   });
 }
 
-// 🚪 Logout
+// 🔹 Logout
 function logout() {
   localStorage.removeItem("isUser");
   window.location.href = "logout_success.html";
 }
 
-// 🔄 Initialize
-loadCommandos();
-loadSchedule();
+// 🔹 Digital Clock
+function updateClock() {
+  const now = new Date();
+  const time = now.toLocaleTimeString();
+  document.getElementById("clock").innerText = "🕒 " + time;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// 🔹 Calendar
+function renderCalendar() {
+  const now = new Date();
+  const month = now.toLocaleString('default', { month: 'long' });
+  const year = now.getFullYear();
+  const date = now.getDate();
+
+  let calendarHTML = `<h3>${month} ${year}</h3>`;
+  calendarHTML += `<table style='width:100%; text-align:center; border-collapse:collapse;'>
+      <tr><th>Su</th><th>Mo</th><th>Tu</th><th>We</th><th>Th</th><th>Fr</th><th>Sa</th></tr><tr>`;
+  
+  const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).getDay();
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+
+  for (let i = 0; i < firstDay; i++) calendarHTML += "<td></td>";
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    if ((firstDay + d - 1) % 7 === 0) calendarHTML += "</tr><tr>";
+    if (d === date) {
+      calendarHTML += `<td style='background:#003366;color:white;border-radius:50%'>${d}</td>`;
+    } else {
+      calendarHTML += `<td>${d}</td>`;
+    }
+  }
+  calendarHTML += "</tr></table>";
+  document.getElementById("calendar").innerHTML = calendarHTML;
+}
+renderCalendar();
+
+// Initialize
+renderCommandos();
 </script>
+
 </body>
 </html>
