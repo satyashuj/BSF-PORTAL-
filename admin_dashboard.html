@@ -6,322 +6,341 @@
 <title>BSF Admin Dashboard</title>
 <style>
   body {
-    font-family: "Segoe UI", sans-serif;
+    font-family: Arial, sans-serif;
+    background: #f3f5f8;
     margin: 0;
-    background: #f0f4f8;
   }
-  header {
+  .navbar {
     background: #003366;
     color: white;
-    padding: 15px 25px;
+    padding: 10px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
   }
-  nav ul {
+  .navbar ul {
     list-style: none;
     display: flex;
     gap: 15px;
   }
-  nav a, nav button {
+  .navbar a, .navbar button {
     color: white;
     text-decoration: none;
-    border: none;
     background: none;
+    border: none;
     cursor: pointer;
     font-size: 16px;
   }
-  section {
+  .section-box {
     background: white;
     margin: 20px auto;
-    width: 85%;
     padding: 20px;
+    width: 85%;
     border-radius: 10px;
     box-shadow: 0 0 8px rgba(0,0,0,0.1);
   }
-  h2 { color: #003366; }
-  input, textarea, select {
-    width: 95%;
+  input, textarea, button, select {
     padding: 8px;
-    margin: 8px 0;
-    border-radius: 5px;
+    margin: 6px 0;
+    border-radius: 6px;
     border: 1px solid #ccc;
+    width: 100%;
   }
   button {
     background: #003366;
     color: white;
-    padding: 8px 14px;
-    border-radius: 5px;
-    border: none;
     cursor: pointer;
   }
-  table {
-    width: 100%;
-    border-collapse: collapse;
+  #photoPreview {
     margin-top: 10px;
+    width: 100px;
+    height: 100px;
+    border: 2px dashed #999;
+    border-radius: 10px;
+    object-fit: cover;
   }
-  table, th, td {
-    border: 1px solid #ddd;
-  }
-  th, td {
-    padding: 8px;
-    text-align: left;
-  }
-  th {
-    background: #003366;
-    color: white;
+  #list li {
+    list-style: none;
+    background: #f9f9f9;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 10px;
   }
   footer {
-    text-align: center;
     background: #003366;
     color: white;
+    text-align: center;
     padding: 10px;
   }
 </style>
 </head>
 <body>
 
-<header>
-  <h1>BSF Admin Dashboard</h1>
-  <nav>
-    <ul>
-      <li><a href="#commandos">Commandos</a></li>
-      <li><a href="#schedule">Schedule</a></li>
-      <li><a href="#weapons">Weapons</a></li>
-      <li><a href="#duty">Duty</a></li>
-      <li><a href="#feedback">Feedback</a></li>
-      <li><button onclick="logout()">Logout</button></li>
-    </ul>
-  </nav>
-</header>
+<nav class="navbar">
+  <h2>BSF Admin Dashboard</h2>
+  <ul>
+    <li><a href="#add">Commandos</a></li>
+    <li><a href="#schedule">Schedule</a></li>
+    <li><a href="#weapons">Weapons</a></li>
+    <li><a href="#duty">Duty</a></li>
+    <li><a href="#feedback">Feedback</a></li>
+    <li><a href="#reports">Reports</a></li>
+    <li><button onclick="logout()">Logout</button></li>
+  </ul>
+</nav>
 
-<!-- 🪖 Commandos Section -->
-<section id="commandos">
-  <h2>🪖 Manage Commandos</h2>
-  <input type="text" id="commandoName" placeholder="Commando Name">
-  <input type="text" id="commandoRank" placeholder="Rank">
-  <input type="text" id="commandoLocation" placeholder="Location">
-  <input type="file" id="commandoPhoto" accept="image/*">
-  <button onclick="addCommando()">Add Commando</button>
-  <table id="commandoTable">
-    <thead><tr><th>Photo</th><th>Name</th><th>Rank</th><th>Location</th><th>Action</th></tr></thead>
-    <tbody></tbody>
-  </table>
+<!-- 🪖 Add / Edit Commando Section -->
+<section id="add" class="section-box">
+  <h3>🪖 Manage Commandos</h3>
+  <input type="text" id="commandoId" placeholder="Commando ID (Auto Generated)" readonly>
+  <input type="text" id="name" placeholder="Commando Name">
+  <input type="text" id="rank" placeholder="Rank">
+  <input type="text" id="location" placeholder="Current Location">
+  <input type="text" id="mission" placeholder="Assigned Mission">
+  <input type="file" id="photoUpload" accept="image/*" onchange="previewPhoto(event)">
+  <img id="photoPreview" src="" alt="Preview">
+  <button id="addBtn" onclick="addOrUpdateCommando()">Add</button>
+  <button id="cancelEditBtn" style="display:none;" onclick="cancelEdit()">Cancel Edit</button>
+  <ul id="list"></ul>
 </section>
 
-<!-- 📅 Schedule -->
-<section id="schedule">
-  <h2>📅 Training Schedule</h2>
-  <textarea id="scheduleText" placeholder="Enter training schedule..."></textarea><br>
-  <button onclick="updateSchedule()">Update Schedule</button>
-  <h3>Current Schedule:</h3>
-  <p id="currentSchedule"></p>
+<!-- 📅 Training Schedule -->
+<section id="schedule" class="section-box">
+  <h3>📅 Training Schedule (Date-wise)</h3>
+  <input type="date" id="scheduleDate">
+  <textarea id="scheduleText" placeholder="Enter training details..." rows="4"></textarea>
+  <button onclick="addSchedule()">Add Schedule</button>
+  <ul id="scheduleList"></ul>
 </section>
 
-<!-- 🔫 Weapons -->
-<section id="weapons">
-  <h2>🔫 Weapons Inventory</h2>
+<!-- 🔫 Weapon Inventory -->
+<section id="weapons" class="section-box">
+  <h3>🔫 Weapon Inventory</h3>
   <input type="text" id="weaponName" placeholder="Weapon Name">
   <input type="number" id="weaponCount" placeholder="Quantity">
   <button onclick="addWeapon()">Add Weapon</button>
-  <table id="weaponTable">
-    <thead><tr><th>Name</th><th>Count</th><th>Action</th></tr></thead>
-    <tbody></tbody>
-  </table>
+  <ul id="weaponList"></ul>
 </section>
 
-<!-- 🧭 Duty Assignment -->
-<section id="duty">
-  <h2>🧭 Duty Assignment</h2>
-  <select id="dutyCommando"></select>
-  <input type="text" id="dutyLocation" placeholder="Duty Location">
+<!-- 🧭 Duty Allocation -->
+<section id="duty" class="section-box">
+  <h3>🧭 Duty Allocation</h3>
+  <input type="text" id="dutyCommando" placeholder="Commando ID or Name">
+  <input type="text" id="dutyLocation" placeholder="Duty Location / Post">
   <input type="date" id="dutyDate">
-  <button onclick="assignDuty()">Assign Duty</button>
-  <table id="dutyTable">
-    <thead><tr><th>Commando</th><th>Location</th><th>Date</th><th>Action</th></tr></thead>
-    <tbody></tbody>
-  </table>
+  <button onclick="addDuty()">Assign Duty</button>
+  <ul id="dutyList"></ul>
 </section>
 
 <!-- 💬 Feedback -->
-<section id="feedback">
-  <h2>💬 User Feedback</h2>
+<section id="feedback" class="section-box">
+  <h3>💬 User Feedback / Recommendations</h3>
   <ul id="feedbackList"></ul>
 </section>
 
+<!-- 🧾 Reports -->
+<section id="reports" class="section-box">
+  <h3>🧾 Reports / Messages from Users</h3>
+  <ul id="reportList"></ul>
+</section>
+
 <footer>
-  <p>© 2025 BSF Portal | Developed by <b>Satyanshu Saxena</b></p>
+  <p>© 2025 <strong>BSF Portal</strong> | Admin Panel</p>
+  <p>Developed by <strong>Satyanshu Saxena</strong></p>
 </footer>
 
 <script>
-// Redirect non-admin
+// Redirect if not admin
 if (localStorage.getItem("isAdmin") !== "true") {
   window.location.href = "main_login.html";
 }
 
-// Load storage
+// Global storage
 let commandos = JSON.parse(localStorage.getItem("commandos")) || [];
+let schedules = JSON.parse(localStorage.getItem("schedules")) || [];
 let weapons = JSON.parse(localStorage.getItem("weapons")) || [];
 let duties = JSON.parse(localStorage.getItem("duties")) || [];
-let schedule = localStorage.getItem("schedule") || "No schedule yet.";
-let feedback = JSON.parse(localStorage.getItem("recommendations")) || [];
+let feedbacks = JSON.parse(localStorage.getItem("recommendations")) || [];
+let reports = JSON.parse(localStorage.getItem("reports")) || [];
 
-// 🪖 Add Commando
-function addCommando() {
-  const name = document.getElementById("commandoName").value.trim();
-  const rank = document.getElementById("commandoRank").value.trim();
-  const location = document.getElementById("commandoLocation").value.trim();
-  const photoFile = document.getElementById("commandoPhoto").files[0];
+let editIndex = null;
+let uploadedPhoto = "";
 
-  if (!name || !rank || !location || !photoFile) return alert("Please fill all fields!");
-
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    commandos.push({ name, rank, location, photo: e.target.result });
-    localStorage.setItem("commandos", JSON.stringify(commandos));
-    renderCommandos();
-    updateDutyDropdown();
-    alert("Commando added successfully!");
-  };
-  reader.readAsDataURL(photoFile);
+// Generate Commando ID
+function generateId() {
+  return "CMD" + Math.floor(Math.random() * 100000);
 }
 
-// 🪖 Render Commandos
+// 🪖 Preview Photo
+function previewPhoto(event) {
+  const file = event.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      uploadedPhoto = e.target.result;
+      document.getElementById("photoPreview").src = uploadedPhoto;
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+// 🪖 Add or Update Commando
+function addOrUpdateCommando() {
+  const id = document.getElementById("commandoId").value || generateId();
+  const name = document.getElementById("name").value.trim();
+  const rank = document.getElementById("rank").value.trim();
+  const location = document.getElementById("location").value.trim();
+  const mission = document.getElementById("mission").value.trim();
+
+  if (!name || !rank || !location || !mission || !uploadedPhoto)
+    return alert("⚠️ Fill all commando details and upload photo!");
+
+  const commando = { id, name, rank, location, mission, photo: uploadedPhoto };
+
+  if (editIndex === null) {
+    commandos.push(commando);
+    alert("✅ Commando added successfully!");
+  } else {
+    commandos[editIndex] = commando;
+    alert("✏️ Commando updated!");
+    editIndex = null;
+    document.getElementById("addBtn").innerText = "Add";
+    document.getElementById("cancelEditBtn").style.display = "none";
+  }
+
+  localStorage.setItem("commandos", JSON.stringify(commandos));
+  renderCommandos();
+  clearForm();
+}
+
 function renderCommandos() {
-  const tbody = document.querySelector("#commandoTable tbody");
-  tbody.innerHTML = "";
+  const list = document.getElementById("list");
+  list.innerHTML = "";
   commandos.forEach((c, i) => {
-    tbody.innerHTML += `
-      <tr>
-        <td><img src="${c.photo}" width="50" style="border-radius:50%"></td>
-        <td>${c.name}</td>
-        <td>${c.rank}</td>
-        <td>${c.location}</td>
-        <td><button onclick="deleteCommando(${i})">Delete</button></td>
-      </tr>`;
+    const li = document.createElement("li");
+    li.innerHTML = `
+      <img src="${c.photo}" width="50" style="border-radius:50%">
+      <strong>${c.name}</strong> (${c.rank}) - ${c.location}<br>
+      Mission: ${c.mission} <br>
+      <button onclick="editCommando(${i})">✏️ Edit</button>
+      <button onclick="deleteCommando(${i})">🗑️ Delete</button>
+    `;
+    list.appendChild(li);
   });
 }
 
-// 🗑 Delete Commando
+function editCommando(i) {
+  const c = commandos[i];
+  document.getElementById("commandoId").value = c.id;
+  document.getElementById("name").value = c.name;
+  document.getElementById("rank").value = c.rank;
+  document.getElementById("location").value = c.location;
+  document.getElementById("mission").value = c.mission;
+  document.getElementById("photoPreview").src = c.photo;
+  uploadedPhoto = c.photo;
+  editIndex = i;
+  document.getElementById("addBtn").innerText = "Update";
+  document.getElementById("cancelEditBtn").style.display = "inline-block";
+}
+
+function cancelEdit() {
+  clearForm();
+  editIndex = null;
+  document.getElementById("addBtn").innerText = "Add";
+  document.getElementById("cancelEditBtn").style.display = "none";
+}
+
+function clearForm() {
+  document.querySelectorAll("#name,#rank,#location,#mission,#commandoId").forEach(el => el.value = "");
+  document.getElementById("photoPreview").src = "";
+  document.getElementById("photoUpload").value = "";
+  uploadedPhoto = "";
+}
+
+// 🗑 Delete
 function deleteCommando(i) {
-  if (!confirm("Delete this commando?")) return;
-  commandos.splice(i, 1);
-  localStorage.setItem("commandos", JSON.stringify(commandos));
-  renderCommandos();
-  updateDutyDropdown();
+  if (confirm("Delete this commando?")) {
+    commandos.splice(i, 1);
+    localStorage.setItem("commandos", JSON.stringify(commandos));
+    renderCommandos();
+  }
 }
 
 // 📅 Schedule
-function updateSchedule() {
+function addSchedule() {
+  const date = document.getElementById("scheduleDate").value;
   const text = document.getElementById("scheduleText").value.trim();
-  if (!text) return alert("Enter a schedule!");
-  schedule = text;
-  localStorage.setItem("schedule", schedule);
-  renderSchedule();
-  alert("Schedule updated!");
+  if (!date || !text) return alert("⚠️ Enter date and details!");
+  schedules.push({ date, text });
+  localStorage.setItem("schedules", JSON.stringify(schedules));
+  renderSchedules();
+  document.getElementById("scheduleText").value = "";
 }
 
-function renderSchedule() {
-  document.getElementById("currentSchedule").innerText = schedule;
+function renderSchedules() {
+  const list = document.getElementById("scheduleList");
+  list.innerHTML = schedules.map(s => `<li><strong>${s.date}:</strong> ${s.text}</li>`).join("");
 }
 
 // 🔫 Weapons
 function addWeapon() {
   const name = document.getElementById("weaponName").value.trim();
   const count = document.getElementById("weaponCount").value.trim();
-  if (!name || !count) return alert("Fill all fields!");
+  if (!name || !count) return alert("⚠️ Enter weapon name and count!");
   weapons.push({ name, count });
   localStorage.setItem("weapons", JSON.stringify(weapons));
   renderWeapons();
+  document.getElementById("weaponName").value = "";
+  document.getElementById("weaponCount").value = "";
 }
 
 function renderWeapons() {
-  const tbody = document.querySelector("#weaponTable tbody");
-  tbody.innerHTML = "";
-  weapons.forEach((w, i) => {
-    tbody.innerHTML += `
-      <tr>
-        <td>${w.name}</td>
-        <td>${w.count}</td>
-        <td><button onclick="deleteWeapon(${i})">Delete</button></td>
-      </tr>`;
-  });
+  const list = document.getElementById("weaponList");
+  list.innerHTML = weapons.map(w => `<li>${w.name} - Qty: ${w.count}</li>`).join("");
 }
 
-function deleteWeapon(i) {
-  weapons.splice(i, 1);
-  localStorage.setItem("weapons", JSON.stringify(weapons));
-  renderWeapons();
-}
-
-// 🧭 Duty
-function assignDuty() {
-  const commando = document.getElementById("dutyCommando").value;
+// 🧭 Duty Allocation
+function addDuty() {
+  const commando = document.getElementById("dutyCommando").value.trim();
   const location = document.getElementById("dutyLocation").value.trim();
   const date = document.getElementById("dutyDate").value;
-  if (!commando || !location || !date) return alert("Fill all fields!");
+  if (!commando || !location || !date) return alert("⚠️ Fill all fields!");
   duties.push({ commando, location, date });
   localStorage.setItem("duties", JSON.stringify(duties));
   renderDuties();
 }
 
 function renderDuties() {
-  const tbody = document.querySelector("#dutyTable tbody");
-  tbody.innerHTML = "";
-  duties.forEach((d, i) => {
-    tbody.innerHTML += `
-      <tr>
-        <td>${d.commando}</td>
-        <td>${d.location}</td>
-        <td>${d.date}</td>
-        <td><button onclick="deleteDuty(${i})">Delete</button></td>
-      </tr>`;
-  });
+  const list = document.getElementById("dutyList");
+  list.innerHTML = duties.map(d => `<li><strong>${d.commando}</strong> - ${d.location} (${d.date})</li>`).join("");
 }
 
-function deleteDuty(i) {
-  duties.splice(i, 1);
-  localStorage.setItem("duties", JSON.stringify(duties));
-  renderDuties();
-}
-
-function updateDutyDropdown() {
-  const select = document.getElementById("dutyCommando");
-  select.innerHTML = '<option value="">Select Commando</option>';
-  commandos.forEach(c => {
-    const option = document.createElement("option");
-    option.value = c.name;
-    option.text = c.name;
-    select.appendChild(option);
-  });
-}
-
-// 💬 Feedback
+// 💬 Feedbacks
 function renderFeedback() {
   const list = document.getElementById("feedbackList");
-  list.innerHTML = "";
-  if (feedback.length === 0) {
-    list.innerHTML = "<p>No feedback yet.</p>";
-  } else {
-    feedback.forEach((f, i) => {
-      list.innerHTML += `<li><b>Suggestion ${i + 1}:</b> ${f}</li>`;
-    });
-  }
+  list.innerHTML = feedbacks.length ? feedbacks.map((f, i) => `<li>${i+1}. ${f}</li>`).join("") : "<p>No feedback yet.</p>";
 }
 
-// 🚪 Logout
+// 🧾 Reports
+function renderReports() {
+  const list = document.getElementById("reportList");
+  list.innerHTML = reports.length ? reports.map((r, i) => `<li>${i+1}. ${r}</li>`).join("") : "<p>No reports yet.</p>";
+}
+
+// 🚪 Logout (common)
 function logout() {
-  localStorage.removeItem("isAdmin");
-  window.location.href = "main_login.html";
+  if (localStorage.getItem("isAdmin")) localStorage.removeItem("isAdmin");
+  if (localStorage.getItem("isUser")) localStorage.removeItem("isUser");
+  window.location.href = "logout_success.html";
 }
 
 // Initialize
 renderCommandos();
+renderSchedules();
 renderWeapons();
-renderSchedule();
 renderDuties();
 renderFeedback();
-updateDutyDropdown();
+renderReports();
 </script>
 </body>
 </html>
