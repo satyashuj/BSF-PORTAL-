@@ -5,8 +5,77 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BSF Admin Dashboard</title>
 <link rel="stylesheet" href="admin.css">
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #f3f5f8;
+    margin: 0;
+  }
+  .navbar {
+    background: #003366;
+    color: white;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .navbar ul {
+    list-style: none;
+    display: flex;
+    gap: 15px;
+  }
+  .navbar a, .navbar button {
+    color: white;
+    text-decoration: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+  }
+  .section-box {
+    background: white;
+    margin: 20px auto;
+    padding: 20px;
+    width: 80%;
+    border-radius: 10px;
+    box-shadow: 0 0 8px rgba(0,0,0,0.1);
+  }
+  input, textarea, button {
+    padding: 8px;
+    margin: 6px 0;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+  }
+  button {
+    background: #003366;
+    color: white;
+    cursor: pointer;
+  }
+  #photoPreview {
+    margin-top: 10px;
+    width: 80px;
+    height: 80px;
+    border: 2px dashed #999;
+    border-radius: 10px;
+    object-fit: cover;
+  }
+  #list li {
+    list-style: none;
+    background: #f9f9f9;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+  }
+  footer {
+    background: #003366;
+    color: white;
+    text-align: center;
+    padding: 10px;
+  }
+</style>
 </head>
 <body>
+
 <nav class="navbar">
   <h2>BSF Admin Dashboard</h2>
   <ul>
@@ -20,8 +89,14 @@
 <!-- 🔹 Add / Edit Commando Section -->
 <section id="add" class="section-box">
   <h3>🪖 Add / Update Commando</h3>
-  <input type="text" id="name" placeholder="Name">
-  <input type="text" id="photo" placeholder="Photo URL">
+  <input type="text" id="commandoId" placeholder="Commando ID (Auto Generated)" readonly>
+  <br>
+  <input type="text" id="name" placeholder="Commando Name">
+  <br>
+  <input type="file" id="photoUpload" accept="image/*" onchange="previewPhoto(event)">
+  <br>
+  <img id="photoPreview" src="" alt="Preview">
+  <br>
   <button id="addBtn" onclick="addOrUpdateCommando()">Add</button>
   <button id="cancelEditBtn" style="display:none;" onclick="cancelEdit()">Cancel Edit</button>
   <ul id="list"></ul>
@@ -58,7 +133,26 @@ let commandos = JSON.parse(localStorage.getItem("commandos")) || [];
 let schedule = localStorage.getItem("schedule") || "No schedule set yet.";
 let recommendations = JSON.parse(localStorage.getItem("recommendations")) || [];
 
-let editIndex = null; // For editing mode
+let editIndex = null;
+let uploadedPhoto = "";
+
+// 🔹 Generate Commando ID automatically
+function generateId() {
+  return "CMD" + Math.floor(Math.random() * 100000);
+}
+
+// 🔹 Preview photo
+function previewPhoto(event) {
+  const file = event.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      uploadedPhoto = e.target.result;
+      document.getElementById("photoPreview").src = uploadedPhoto;
+    };
+    reader.readAsDataURL(file);
+  }
+}
 
 // 🔹 Render Commandos
 function renderCommandos() {
@@ -68,7 +162,7 @@ function renderCommandos() {
     const li = document.createElement("li");
     li.innerHTML = `
       <img src="${c.photo}" width="50" style="border-radius:50%"> 
-      <strong>${c.name}</strong>
+      <strong>${c.name}</strong> (ID: ${c.id})
       <button onclick="editCommando(${i})">✏️ Edit</button>
       <button onclick="deleteCommando(${i})">🗑️ Delete</button>
     `;
@@ -79,17 +173,15 @@ function renderCommandos() {
 // 🪖 Add or Update Commando
 function addOrUpdateCommando() {
   const name = document.getElementById("name").value.trim();
-  const photo = document.getElementById("photo").value.trim();
+  const id = document.getElementById("commandoId").value || generateId();
 
-  if (!name || !photo) return alert("⚠️ Enter both Name and Photo URL!");
+  if (!name || !uploadedPhoto) return alert("⚠️ Enter Name and Upload Photo!");
 
   if (editIndex === null) {
-    // Add new
-    commandos.push({ name, photo });
+    commandos.push({ id, name, photo: uploadedPhoto });
     alert("✅ Commando added successfully!");
   } else {
-    // Update existing
-    commandos[editIndex] = { name, photo };
+    commandos[editIndex] = { id, name, photo: uploadedPhoto };
     alert("✏️ Commando updated successfully!");
     editIndex = null;
     document.getElementById("addBtn").innerText = "Add";
@@ -98,15 +190,16 @@ function addOrUpdateCommando() {
 
   localStorage.setItem("commandos", JSON.stringify(commandos));
   renderCommandos();
-  document.getElementById("name").value = "";
-  document.getElementById("photo").value = "";
+  clearForm();
 }
 
 // ✏️ Edit Commando
 function editCommando(index) {
   const c = commandos[index];
+  document.getElementById("commandoId").value = c.id;
   document.getElementById("name").value = c.name;
-  document.getElementById("photo").value = c.photo;
+  document.getElementById("photoPreview").src = c.photo;
+  uploadedPhoto = c.photo;
   document.getElementById("addBtn").innerText = "Update";
   document.getElementById("cancelEditBtn").style.display = "inline-block";
   editIndex = index;
@@ -114,11 +207,19 @@ function editCommando(index) {
 
 // ❌ Cancel Edit
 function cancelEdit() {
+  clearForm();
   editIndex = null;
-  document.getElementById("name").value = "";
-  document.getElementById("photo").value = "";
   document.getElementById("addBtn").innerText = "Add";
   document.getElementById("cancelEditBtn").style.display = "none";
+}
+
+// 🧹 Clear Input Fields
+function clearForm() {
+  document.getElementById("commandoId").value = "";
+  document.getElementById("name").value = "";
+  document.getElementById("photoPreview").src = "";
+  document.getElementById("photoUpload").value = "";
+  uploadedPhoto = "";
 }
 
 // 🗑 Delete Commando
