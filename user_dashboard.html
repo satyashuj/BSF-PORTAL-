@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BSF User Dashboard</title>
+<link rel="stylesheet" href="user.css">
+</head>
+<body>
+<nav class="navbar">
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQmPj0JPUJpbP4RPvxuLRY36ENmNicuW2_AcA&s" alt="BSF Logo" class="logo-img">
+  <h2>BSF Portal - User Dashboard</h2>
+  <ul>
+    <li><a href="#home">Home</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#contact">Contact</a></li>
+    <li><input type="text" id="searchBox" placeholder="Search Commando..." onkeyup="searchCommando()"></li>
+    <li><button onclick="logout()">Logout</button></li>
+  </ul>
+</nav>
+
+<section id="home" class="dashboard">
+  <h2>Commando & Schedule Details</h2>
+
+  <!-- Commandos -->
+  <div class="user-box">
+    <h3>🪖 Commandos</h3>
+    <ul id="commandoList"></ul>
+  </div>
+
+  <!-- Schedule -->
+  <div class="user-box">
+    <h3>📅 Training Schedule</h3>
+    <p id="showSchedule"></p>
+  </div>
+</section>
+
+<section id="about" class="info-section">
+  <h3>About BSF</h3>
+  <p>The Border Security Force (BSF) is India's first line of defense. It ensures border safety, conducts patrols, and upholds national security with valor and discipline.</p>
+</section>
+
+<section id="contact" class="info-section">
+  <h3>Contact</h3>
+  <p>Email: info@bsf.gov.in | Phone: +91 9876543210</p>
+</section>
+
+<footer>
+  <p>© 2025 BSF Portal | All Rights Reserved</p>
+  <p>Created by Satyanshu Saxena</p>
+</footer>
+
+<script>
+// 🚫 Block access if not logged in
+if (localStorage.getItem("isUser") !== "true") {
+  window.location.href = "main_login.html";
+}
+
+// 🪖 Load Commandos
+function loadCommandos() {
+  const commandos = JSON.parse(localStorage.getItem("commandos")) || [];
+  const list = document.getElementById("commandoList");
+  list.innerHTML = "";
+
+  if (commandos.length === 0) {
+    list.innerHTML = "<li>No commandos added yet.</li>";
+  } else {
+    commandos.forEach(c => {
+      const li = document.createElement("li");
+      li.innerHTML = `<img src="${c.photo}" width="50" style="border-radius:50%"> <strong>${c.name}</strong>`;
+      list.appendChild(li);
+    });
+  }
+}
+
+// 📅 Load Schedule
+function loadSchedule() {
+  const schedule = localStorage.getItem("schedule") || "No schedule available yet.";
+  document.getElementById("showSchedule").innerText = schedule;
+}
+
+// 🔍 Search Commandos
+function searchCommando() {
+  const input = document.getElementById("searchBox").value.toLowerCase();
+  const listItems = document.querySelectorAll("#commandoList li");
+  listItems.forEach(item => {
+    const text = item.textContent.toLowerCase();
+    item.style.display = text.includes(input) ? "flex" : "none";
+  });
+}
+
+// 🚪 Logout
+function logout() {
+  localStorage.removeItem("isUser");
+  window.location.href = "logout_success.html";
+}
+
+// 🔄 Initialize
+loadCommandos();
+loadSchedule();
+</script>
+</body>
+</html>

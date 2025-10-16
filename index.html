@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BSF Portal - Login</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg, #001f3f, #0074D9);
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+}
+.login-box {
+  background: rgba(255,255,255,0.1);
+  padding: 30px;
+  border-radius: 15px;
+  width: 320px;
+  text-align: center;
+  box-shadow: 0 0 15px rgba(0,0,0,0.4);
+}
+.logo-img {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  margin-bottom: 15px;
+  border: 2px solid white;
+}
+input[type="text"], input[type="password"] {
+  width: 90%;
+  padding: 10px;
+  margin: 8px 0;
+  border: none;
+  border-radius: 5px;
+  outline: none;
+}
+button {
+  width: 95%;
+  padding: 10px;
+  background: #28a745;
+  border: none;
+  color: white;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+}
+button:hover {
+  background: #218838;
+}
+.links a {
+  color: #ffdd57;
+  text-decoration: none;
+}
+.links a:hover {
+  text-decoration: underline;
+}
+.remember {
+  text-align: left;
+  margin: 8px 0;
+  font-size: 14px;
+}
+.popup {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.6);
+  justify-content: center;
+  align-items: center;
+}
+.popup-content {
+  background: white;
+  color: black;
+  padding: 20px;
+  border-radius: 10px;
+  width: 300px;
+  text-align: center;
+}
+.popup-content input, .popup-content textarea {
+  width: 90%;
+  margin: 8px 0;
+  padding: 8px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+.close {
+  background: crimson;
+  color: white;
+  margin-top: 8px;
+}
+.role-options {
+  margin: 10px 0;
+  text-align: left;
+}
+.role-options label {
+  margin-right: 10px;
+  cursor: pointer;
+}
+.info-text {
+  font-size: 13px;
+  color: #333;
+  background: #f9f9f9;
+  padding: 8px;
+  border-radius: 5px;
+  margin-bottom: 10px;
+  border: 1px dashed #ccc;
+}
+</style>
+</head>
+<body>
+
+<div class="login-box">
+    <img src="https://pbs.twimg.com/amplify_video_thumb/1921503947128283136/img/-C9XJHSqTN5N0aw5.jpg:large" alt="BSF Logo" class="logo-img">
+    <h2>BSF Portal Login</h2>
+
+    <div class="role-options">
+        <label><input type="radio" name="role" value="user"> User</label>
+        <label><input type="radio" name="role" value="admin"> Admin</label>
+    </div>
+
+    <input type="text" id="username" placeholder="Enter Username"><br>
+    <input type="password" id="password" placeholder="Enter Password"><br>
+
+    <div class="remember">
+        <input type="checkbox" id="rememberMe"> Remember Me
+    </div>
+
+    <button onclick="login()">Login</button>
+    <br><br>
+
+    <div class="links">
+        <a href="#" onclick="openCreateAccount()">Create Account</a> |
+        <a href="#" onclick="forgotPassword()">Forgot Password?</a> |
+        <a href="#" onclick="openRecommend()">Recommend Me</a>
+    </div>
+</div>
+
+<!-- 🔹 Create Account Form -->
+<div id="createAccountBox" class="popup">
+    <div class="popup-content">
+        <h3>Create New Account</h3>
+        <div class="info-text">
+          👉 Enter a new username and password below to register your account.
+        </div>
+        <input type="text" id="newUsername" placeholder="Enter New Username">
+        <input type="password" id="newPassword" placeholder="Enter New Password">
+        <button onclick="createAccount()">Register</button>
+        <button class="close" onclick="closePopup('createAccountBox')">Close</button>
+    </div>
+</div>
+
+<!-- 🔹 Forgot Password Form -->
+<div id="forgotBox" class="popup">
+    <div class="popup-content">
+        <h3>Forgot Password</h3>
+        <div class="info-text">
+          🔹 Enter your registered username to retrieve your saved password.
+        </div>
+        <input type="text" id="recoverUser" placeholder="Enter Username to Recover Password">
+        <button onclick="recoverPassword()">Recover</button>
+        <button class="close" onclick="closePopup('forgotBox')">Close</button>
+    </div>
+</div>
+
+<!-- 🔹 Recommendation Form -->
+<div id="recommendBox" class="popup">
+    <div class="popup-content">
+        <h3>Send Recommendation</h3>
+        <div class="info-text">
+          💬 Write your feedback or suggestion about the BSF Portal below.
+        </div>
+        <textarea id="recommendText" placeholder="Write your suggestion..." rows="4"></textarea>
+        <button onclick="sendRecommend()">Send</button>
+        <button class="close" onclick="closePopup('recommendBox')">Close</button>
+    </div>
+</div>
+
+<script>
+window.onload = function() {
+    const savedUser = localStorage.getItem("rememberUser");
+    const savedPass = localStorage.getItem("rememberPass");
+    const savedRole = localStorage.getItem("rememberRole");
+
+    if (savedUser && savedPass) {
+        document.getElementById("username").value = savedUser;
+        document.getElementById("password").value = savedPass;
+        document.getElementById("rememberMe").checked = true;
+        if (savedRole) {
+            document.querySelector(`input[name="role"][value="${savedRole}"]`).checked = true;
+        }
+    }
+};
+
+function login() {
+    const selectedRole = document.querySelector('input[name="role"]:checked');
+    if (!selectedRole) {
+        alert("⚠️ Please select a role first!");
+        return;
+    }
+
+    const role = selectedRole.value;
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value.trim();
+    const remember = document.getElementById('rememberMe').checked;
+
+    if (remember) {
+        localStorage.setItem("rememberUser", username);
+        localStorage.setItem("rememberPass", password);
+        localStorage.setItem("rememberRole", role);
+    } else {
+        localStorage.removeItem("rememberUser");
+        localStorage.removeItem("rememberPass");
+        localStorage.removeItem("rememberRole");
+    }
+
+    // Admin login
+    if (role === "admin") {
+        if (username.toLowerCase() === "bsf" && password === "BSF@123") {
+            alert("Welcome Admin!");
+            localStorage.setItem("isAdmin", "true");
+            window.location.href = "admin_dashboard.html";
+        } else {
+            alert("❌ Invalid Admin credentials! Try: BSF / BSF@123");
+        }
+        return;
+    }
+
+    // User login
+    const savedUser = localStorage.getItem("newUser");
+    const savedPass = localStorage.getItem("newPass");
+
+    if ((username === "Himanshu" && password === "Himanshu@123") ||
+        (username === savedUser && password === savedPass)) {
+        alert("Welcome User!");
+        localStorage.setItem("isUser", "true");
+        window.location.href = "user_dashboard.html";
+    } else {
+        alert("❌ Invalid User credentials!");
+    }
+}
+
+function openCreateAccount() {
+    document.getElementById("createAccountBox").style.display = "flex";
+}
+function createAccount() {
+    const u = document.getElementById("newUsername").value.trim();
+    const p = document.getElementById("newPassword").value.trim();
+    if (u && p) {
+        localStorage.setItem("newUser", u);
+        localStorage.setItem("newPass", p);
+        alert("✅ Account Created Successfully!");
+        closePopup('createAccountBox');
+    } else {
+        alert("⚠️ Please fill both fields!");
+    }
+}
+
+function forgotPassword() {
+    document.getElementById("forgotBox").style.display = "flex";
+}
+function recoverPassword() {
+    const user = document.getElementById("recoverUser").value.trim();
+    const savedUser = localStorage.getItem("newUser");
+    const savedPass = localStorage.getItem("newPass");
+    if (user === savedUser) {
+        alert("🔑 Your Password is: " + savedPass);
+        closePopup('forgotBox');
+    } else {
+        alert("⚠️ User not found!");
+    }
+}
+
+function openRecommend() {
+    document.getElementById("recommendBox").style.display = "flex";
+}
+function sendRecommend() {
+    const text = document.getElementById("recommendText").value.trim();
+    if (text) {
+        alert("✅ Recommendation Sent. Thank you!");
+        document.getElementById("recommendText").value = "";
+        closePopup('recommendBox');
+    } else {
+        alert("⚠️ Please write something first!");
+    }
+}
+
+function closePopup(id) {
+    document.getElementById(id).style.display = "none";
+}
+</script>
+</body>
+</html>

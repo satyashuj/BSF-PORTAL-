@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BSF Admin Dashboard</title>
+<link rel="stylesheet" href="admin.css">
+</head>
+<body>
+<nav class="navbar">
+  <h2>BSF Admin Dashboard</h2>
+  <ul>
+    <li><a href="#add">Add Commando</a></li>
+    <li><a href="#schedule">Schedule</a></li>
+    <li><a href="#requests">Requests</a></li>
+    <li><button onclick="logout()">Logout</button></li>
+  </ul>
+</nav>
+
+<!-- 🔹 Add / Edit Commando Section -->
+<section id="add" class="section-box">
+  <h3>🪖 Add / Update Commando</h3>
+  <input type="text" id="name" placeholder="Name">
+  <input type="text" id="photo" placeholder="Photo URL">
+  <button id="addBtn" onclick="addOrUpdateCommando()">Add</button>
+  <button id="cancelEditBtn" style="display:none;" onclick="cancelEdit()">Cancel Edit</button>
+  <ul id="list"></ul>
+</section>
+
+<!-- 🔹 Schedule Section -->
+<section id="schedule" class="section-box">
+  <h3>📅 Update Schedule</h3>
+  <textarea id="scheduleText" placeholder="Write daily training schedule here..." rows="5"></textarea><br>
+  <button onclick="updateSchedule()">Update</button>
+  <h4>Current Schedule:</h4>
+  <p id="showSchedule"></p>
+</section>
+
+<!-- 🔹 Requests Section -->
+<section id="requests" class="section-box">
+  <h3>💬 User Recommendations</h3>
+  <ul id="recommendList"></ul>
+</section>
+
+<footer>
+  <p>© 2025 <strong>BSF Portal</strong> | Admin Panel</p>
+  <p>Developed by <strong>Satyanshu Saxena</strong></p>
+</footer>
+
+<script>
+// 🔐 Redirect if not admin
+if (localStorage.getItem("isAdmin") !== "true") {
+  window.location.href = "main_login.html";
+}
+
+// 🔸 Load Data
+let commandos = JSON.parse(localStorage.getItem("commandos")) || [];
+let schedule = localStorage.getItem("schedule") || "No schedule set yet.";
+let recommendations = JSON.parse(localStorage.getItem("recommendations")) || [];
+
+let editIndex = null; // For editing mode
+
+// 🔹 Render Commandos
+function renderCommandos() {
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+  commandos.forEach((c, i) => {
+    const li = document.createElement("li");
+    li.innerHTML = `
+      <img src="${c.photo}" width="50" style="border-radius:50%"> 
+      <strong>${c.name}</strong>
+      <button onclick="editCommando(${i})">✏️ Edit</button>
+      <button onclick="deleteCommando(${i})">🗑️ Delete</button>
+    `;
+    list.appendChild(li);
+  });
+}
+
+// 🪖 Add or Update Commando
+function addOrUpdateCommando() {
+  const name = document.getElementById("name").value.trim();
+  const photo = document.getElementById("photo").value.trim();
+
+  if (!name || !photo) return alert("⚠️ Enter both Name and Photo URL!");
+
+  if (editIndex === null) {
+    // Add new
+    commandos.push({ name, photo });
+    alert("✅ Commando added successfully!");
+  } else {
+    // Update existing
+    commandos[editIndex] = { name, photo };
+    alert("✏️ Commando updated successfully!");
+    editIndex = null;
+    document.getElementById("addBtn").innerText = "Add";
+    document.getElementById("cancelEditBtn").style.display = "none";
+  }
+
+  localStorage.setItem("commandos", JSON.stringify(commandos));
+  renderCommandos();
+  document.getElementById("name").value = "";
+  document.getElementById("photo").value = "";
+}
+
+// ✏️ Edit Commando
+function editCommando(index) {
+  const c = commandos[index];
+  document.getElementById("name").value = c.name;
+  document.getElementById("photo").value = c.photo;
+  document.getElementById("addBtn").innerText = "Update";
+  document.getElementById("cancelEditBtn").style.display = "inline-block";
+  editIndex = index;
+}
+
+// ❌ Cancel Edit
+function cancelEdit() {
+  editIndex = null;
+  document.getElementById("name").value = "";
+  document.getElementById("photo").value = "";
+  document.getElementById("addBtn").innerText = "Add";
+  document.getElementById("cancelEditBtn").style.display = "none";
+}
+
+// 🗑 Delete Commando
+function deleteCommando(index) {
+  if (!confirm("Are you sure you want to delete this commando?")) return;
+  commandos.splice(index, 1);
+  localStorage.setItem("commandos", JSON.stringify(commandos));
+  renderCommandos();
+  alert("🗑️ Commando deleted.");
+}
+
+// 📅 Update Schedule
+function updateSchedule() {
+  const text = document.getElementById("scheduleText").value.trim();
+  if (!text) return alert("⚠️ Please write schedule first!");
+  schedule = text;
+  localStorage.setItem("schedule", schedule);
+  renderSchedule();
+  alert("✅ Schedule updated successfully!");
+}
+
+// 🔹 Render Schedule
+function renderSchedule() {
+  document.getElementById("showSchedule").innerText = schedule;
+}
+
+// 💬 Render Requests
+function renderRequests() {
+  const list = document.getElementById("recommendList");
+  list.innerHTML = "";
+  if (recommendations.length === 0) {
+    list.innerHTML = "<p>No new requests yet.</p>";
+  } else {
+    recommendations.forEach((r, i) => {
+      const li = document.createElement("li");
+      li.innerHTML = `<strong>Suggestion ${i + 1}:</strong> ${r}`;
+      list.appendChild(li);
+    });
+  }
+}
+
+// 🚪 Logout
+function logout() {
+  localStorage.removeItem("isAdmin");
+  window.location.href = "logout_success.html";
+}
+
+// 🔄 Initialize
+renderCommandos();
+renderSchedule();
+renderRequests();
+</script>
+</body>
+</html>
