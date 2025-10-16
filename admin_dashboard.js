@@ -1,205 +1,123 @@
-// 🔒 Redirect if not admin
+<script>
 if (localStorage.getItem("isAdmin") !== "true") {
   window.location.href = "main_login.html";
 }
 
-// 🧠 Load stored data
 let commandos = JSON.parse(localStorage.getItem("commandos")) || [];
-let weapons = JSON.parse(localStorage.getItem("weapons")) || [];
-let duties = JSON.parse(localStorage.getItem("duties")) || [];
-let schedule = localStorage.getItem("schedule") || "No schedule set yet.";
-let feedback = JSON.parse(localStorage.getItem("recommendations")) || [];
+let editIndex = null;
+let uploadedPhoto = "";
 
-// 🪖 Preview photo
+// Generate Commando ID
+function generateId() {
+  return "CMD" + Math.floor(Math.random() * 100000);
+}
+
+// Preview Photo
 function previewPhoto(event) {
-  const preview = document.getElementById("photoPreview");
-  preview.src = URL.createObjectURL(event.target.files[0]);
-  preview.style.display = "block";
+  const file = event.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      uploadedPhoto = e.target.result;
+      document.getElementById("photoPreview").src = uploadedPhoto;
+    };
+    reader.readAsDataURL(file);
+  }
 }
 
-// 🆔 Generate unique ID
-function generateID() {
-  return "CMD-" + Math.floor(1000 + Math.random() * 9000);
-}
+// Add / Update Commando
+function addOrUpdateCommando() {
+  const id = document.getElementById("commandoId").value || generateId();
+  const name = document.getElementById("name").value.trim();
+  const rank = document.getElementById("rank").value.trim();
+  const location = document.getElementById("location").value.trim();
+  const mission = document.getElementById("mission").value.trim();
 
-// ➕ Add Commando
-function addCommando() {
-  const name = document.getElementById("commandoName").value.trim();
-  const rank = document.getElementById("commandoRank").value.trim();
-  const location = document.getElementById("commandoLocation").value.trim();
-  const photoFile = document.getElementById("commandoPhoto").files[0];
-
-  if (!name || !rank || !location || !photoFile) {
-    alert("⚠️ Please fill all fields!");
+  if (!name || !rank || !location || !mission || !uploadedPhoto) {
+    alert("⚠️ Please fill all fields and upload a photo!");
     return;
   }
 
-  const reader = new FileReader();
-  reader.onload = function (e) {
-    const id = generateID();
-    const photo = e.target.result;
-    commandos.push({ id, name, rank, location, photo });
+  const commando = { id, name, rank, location, mission, photo: uploadedPhoto };
 
-    localStorage.setItem("commandos", JSON.stringify(commandos));
-    renderCommandos();
-    updateDutyDropdown();
-
-    document.getElementById("commandoName").value = "";
-    document.getElementById("commandoRank").value = "";
-    document.getElementById("commandoLocation").value = "";
-    document.getElementById("commandoPhoto").value = "";
-    document.getElementById("photoPreview").style.display = "none";
-
+  if (editIndex === null) {
+    commandos.push(commando);
     alert("✅ Commando added successfully!");
-  };
-  reader.readAsDataURL(photoFile);
+  } else {
+    commandos[editIndex] = commando;
+    alert("✏️ Commando updated!");
+    editIndex = null;
+    document.getElementById("addBtn").innerText = "Add";
+    document.getElementById("cancelEditBtn").style.display = "none";
+  }
+
+  localStorage.setItem("commandos", JSON.stringify(commandos));
+  renderCommandos(); // ✅ refresh immediately
+  clearForm();
 }
 
-// 🧾 Render Commandos
+// Render all Commandos
 function renderCommandos() {
-  const tbody = document.querySelector("#commandoTable tbody");
-  tbody.innerHTML = "";
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+
+  if (commandos.length === 0) {
+    list.innerHTML = "<p>No commandos added yet.</p>";
+    return;
+  }
+
   commandos.forEach((c, i) => {
-    const row = `
-      <tr>
-        <td><img src="${c.photo}" width="50" style="border-radius:50%"></td>
-        <td>${c.id}</td>
-        <td>${c.name}</td>
-        <td>${c.rank}</td>
-        <td>${c.location}</td>
-        <td><button onclick="deleteCommando(${i})">🗑️ Delete</button></td>
-      </tr>
+    const li = document.createElement("li");
+    li.innerHTML = `
+      <img src="${c.photo}" width="60" height="60" style="border-radius:50%;object-fit:cover;"> 
+      <strong>${c.name}</strong> (${c.rank})<br>
+      Location: ${c.location}<br>
+      Mission: ${c.mission}<br>
+      <button onclick="editCommando(${i})">✏️ Edit</button>
+      <button onclick="deleteCommando(${i})">🗑️ Delete</button>
     `;
-    tbody.insertAdjacentHTML("beforeend", row);
+    list.appendChild(li);
   });
 }
 
-// ❌ Delete Commando
+// Edit Commando
+function editCommando(i) {
+  const c = commandos[i];
+  document.getElementById("commandoId").value = c.id;
+  document.getElementById("name").value = c.name;
+  document.getElementById("rank").value = c.rank;
+  document.getElementById("location").value = c.location;
+  document.getElementById("mission").value = c.mission;
+  document.getElementById("photoPreview").src = c.photo;
+  uploadedPhoto = c.photo;
+  editIndex = i;
+  document.getElementById("addBtn").innerText = "Update";
+  document.getElementById("cancelEditBtn").style.display = "inline-block";
+}
+
+// Delete Commando
 function deleteCommando(i) {
-  if (!confirm("Are you sure you want to delete this commando?")) return;
+  if (!confirm("Delete this commando?")) return;
   commandos.splice(i, 1);
   localStorage.setItem("commandos", JSON.stringify(commandos));
   renderCommandos();
-  updateDutyDropdown();
 }
 
-// 🔫 Add Weapon
-function addWeapon() {
-  const name = document.getElementById("weaponName").value.trim();
-  const count = document.getElementById("weaponCount").value.trim();
-  if (!name || !count) return alert("⚠️ Fill all fields!");
-  weapons.push({ name, count });
-  localStorage.setItem("weapons", JSON.stringify(weapons));
-  renderWeapons();
-  document.getElementById("weaponName").value = "";
-  document.getElementById("weaponCount").value = "";
+// Clear Form
+function clearForm() {
+  document.querySelectorAll("#name,#rank,#location,#mission,#commandoId").forEach(el => el.value = "");
+  document.getElementById("photoUpload").value = "";
+  document.getElementById("photoPreview").src = "";
+  uploadedPhoto = "";
 }
 
-// 🔫 Render Weapons
-function renderWeapons() {
-  const tbody = document.querySelector("#weaponTable tbody");
-  tbody.innerHTML = "";
-  weapons.forEach((w, i) => {
-    tbody.insertAdjacentHTML(
-      "beforeend",
-      `<tr>
-        <td>${w.name}</td>
-        <td>${w.count}</td>
-        <td><button onclick="deleteWeapon(${i})">🗑️ Delete</button></td>
-      </tr>`
-    );
-  });
-}
-
-function deleteWeapon(i) {
-  weapons.splice(i, 1);
-  localStorage.setItem("weapons", JSON.stringify(weapons));
-  renderWeapons();
-}
-
-// 🧭 Assign Duty
-function assignDuty() {
-  const commando = document.getElementById("dutyCommando").value;
-  const location = document.getElementById("dutyLocation").value.trim();
-  const date = document.getElementById("dutyDate").value;
-
-  if (!commando || !location || !date) return alert("⚠️ Fill all fields!");
-  duties.push({ commando, location, date });
-  localStorage.setItem("duties", JSON.stringify(duties));
-  renderDuties();
-}
-
-function renderDuties() {
-  const tbody = document.querySelector("#dutyTable tbody");
-  tbody.innerHTML = "";
-  duties.forEach((d, i) => {
-    tbody.insertAdjacentHTML(
-      "beforeend",
-      `<tr>
-        <td>${d.commando}</td>
-        <td>${d.location}</td>
-        <td>${d.date}</td>
-        <td><button onclick="deleteDuty(${i})">🗑️ Delete</button></td>
-      </tr>`
-    );
-  });
-}
-
-function deleteDuty(i) {
-  duties.splice(i, 1);
-  localStorage.setItem("duties", JSON.stringify(duties));
-  renderDuties();
-}
-
-function updateDutyDropdown() {
-  const select = document.getElementById("dutyCommando");
-  select.innerHTML = '<option value="">Select Commando</option>';
-  commandos.forEach((c) => {
-    const option = document.createElement("option");
-    option.value = c.name;
-    option.text = `${c.name} (${c.id})`;
-    select.appendChild(option);
-  });
-}
-
-// 📅 Schedule
-function updateSchedule() {
-  const text = document.getElementById("scheduleText").value.trim();
-  if (!text) return alert("⚠️ Please enter a schedule!");
-  schedule = text;
-  localStorage.setItem("schedule", schedule);
-  renderSchedule();
-  alert("✅ Schedule updated successfully!");
-}
-
-function renderSchedule() {
-  document.getElementById("currentSchedule").innerText = schedule;
-}
-
-// 💬 Feedback
-function renderFeedback() {
-  const list = document.getElementById("feedbackList");
-  list.innerHTML = "";
-  if (feedback.length === 0) {
-    list.innerHTML = "<p>No feedback available.</p>";
-  } else {
-    feedback.forEach((f, i) => {
-      list.insertAdjacentHTML("beforeend", `<li><b>${i + 1}.</b> ${f}</li>`);
-    });
-  }
-}
-
-// 🚪 Common Logout
+// Logout (common)
 function logout() {
-  if (localStorage.getItem("isAdmin")) localStorage.removeItem("isAdmin");
-  if (localStorage.getItem("isUser")) localStorage.removeItem("isUser");
+  localStorage.removeItem("isAdmin");
+  localStorage.removeItem("isUser");
   window.location.href = "logout_success.html";
 }
 
-// 🧩 Initialize
+// Initialize view
 renderCommandos();
-renderWeapons();
-renderDuties();
-renderSchedule();
-renderFeedback();
-updateDutyDropdown();
+</script>
